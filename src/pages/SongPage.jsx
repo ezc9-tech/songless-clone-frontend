@@ -40,44 +40,28 @@ const SongPage = () => {
 
     fetchFirstSong();
 
-    // Load YouTube API script
-    if (!window.YT) {
+    // Load SoundCloud Widget API script
+    if (!window.SC) {
       const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
+      tag.src = "https://w.soundcloud.com/player/api.js";
       const firstScriptTag = document.getElementsByTagName("script")[0];
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-      window.onYouTubeIframeAPIReady = () => {
-        console.log("YouTube API is ready");
+      tag.onload = () => {
+        console.log("SoundCloud API is ready");
       };
     }
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      if (playerRef.current && playerRef.current.destroy) {
-        playerRef.current.destroy();
-      }
     };
   }, []);
 
-  const extractVideoId = (url) => {
-    if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return match && match[2].length === 11 ? match[2] : null;
-  };
-
   const onPlayButtonClick = () => {
-    if (isPlaying || !song || !song.youtube_url) return;
+    if (isPlaying || !song || !song.soundcloud_url) return;
 
-    if (!window.YT || !window.YT.Player) {
-      setStatus("YouTube Player is still loading. Please try again in a moment.");
-      return;
-    }
-
-    const videoId = extractVideoId(song.youtube_url);
-    if (!videoId) {
-      setStatus("Error: Invalid YouTube URL.");
+    if (!window.SC) {
+      setStatus("SoundCloud Player is still loading. Please try again in a moment.");
       return;
     }
 
@@ -86,29 +70,24 @@ const SongPage = () => {
 
     // Create player if it doesn't exist
     if (!playerRef.current) {
-      playerRef.current = new window.YT.Player("youtube-player", {
-        height: "0",
-        width: "0",
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          controls: 0,
-        },
-        events: {
-          onReady: (event) => {
-            event.target.playVideo();
-            startTimer();
-          },
-          onStateChange: (event) => {
-            if (event.data === window.YT.PlayerState.PLAYING && !timerRef.current) {
-              startTimer();
-            }
-          },
-        },
+      const iframe = document.getElementById("soundcloud-player-iframe");
+      iframe.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(song.soundcloud_url)}&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false`;
+      
+      playerRef.current = window.SC.Widget(iframe);
+      playerRef.current.bind(window.SC.Widget.Events.READY, () => {
+        playerRef.current.play();
+        startTimer();
       });
     } else {
-      playerRef.current.loadVideoById(videoId);
-      playerRef.current.playVideo();
+      playerRef.current.load(song.soundcloud_url, {
+        auto_play: true,
+        hide_related: true,
+        show_comments: false,
+        show_user: false,
+        show_reposts: false,
+        show_teaser: false,
+        visual: false
+      });
       startTimer();
     }
   };
@@ -117,7 +96,7 @@ const SongPage = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       if (playerRef.current) {
-        playerRef.current.stopVideo();
+        playerRef.current.pause();
       }
       setIsPlaying(false);
       setStatus("Finished playing snippet.");
@@ -156,8 +135,17 @@ const SongPage = () => {
 
       <p className="status-text">{status}</p>
 
-      {/* Hidden YouTube Player div */}
-      <div id="youtube-player"></div>
+      {/* Hidden SoundCloud Player iframe */}
+      <iframe
+        id="soundcloud-player-iframe"
+        width="0"
+        height="0"
+        scrolling="no"
+        frameBorder="no"
+        allow="autoplay"
+        src=""
+        style={{ display: "none" }}
+      ></iframe>
     </div>
   );
 };
