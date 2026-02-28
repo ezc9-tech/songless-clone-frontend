@@ -16,6 +16,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
   text-align: center;
+  color: #222;
 }
 
 .register-logo {
@@ -86,4 +87,8 @@ body {
 .register-container p {
   margin-top: 20px;
   font-size: 14px;
+}
+
+.error {
+  color: red;
 }

@@ -16,6 +16,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
   text-align: center;
+  color: #000;
 }
 
 .login-logo {
@@ -80,4 +81,8 @@ body {
 
 .login-container a:hover {
   text-decoration: underline;
+}
+
+.error {
+  color: red;
 }
