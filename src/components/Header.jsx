@@ -3,7 +3,7 @@
 export default function Header() {
     return (
         <header className="header">
-            <h1 className="header-title">Songless</h1>
+            <h1 className="header-title">Adtune</h1>
         </header>
     )
 }
