@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../utils/supabase";
 
-export default function SongSearch() {
+export default function SongSearch({ onGuess, disabled }) {
     const [query, setQuery] = useState("");
     const [songs, setSongs] = useState([]);
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [selectedSong, setSelectedSong] = useState(null);
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -38,6 +39,7 @@ export default function SongSearch() {
     const handleInputChange = (e) => {
         const value = e.target.value;
         setQuery(value);
+        setSelectedSong(null);
 
         if (value.length > 0) {
             const filtered = songs.filter(
@@ -55,8 +57,18 @@ export default function SongSearch() {
 
     const handleSuggestionClick = (song) => {
         setQuery(`${song.song} - ${song.artist}`);
+        setSelectedSong(song);
         setSuggestions([]);
         setShowSuggestions(false);
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (selectedSong && onGuess && !disabled) {
+            onGuess(selectedSong);
+            setQuery("");
+            setSelectedSong(null);
+        }
     };
 
     const highlightText = (text, highlight) => {
@@ -79,7 +91,7 @@ export default function SongSearch() {
 
     return (
         <div className="song-search-container" ref={containerRef}>
-            <form className="song-search" onSubmit={(e) => e.preventDefault()}>
+            <form className="song-search" onSubmit={handleSubmit}>
                 <div className="input-wrapper">
                     <input
                         type="text"
@@ -87,6 +99,7 @@ export default function SongSearch() {
                         value={query}
                         onChange={handleInputChange}
                         onFocus={() => query.length > 0 && setShowSuggestions(true)}
+                        disabled={disabled}
                     />
                     {showSuggestions && suggestions.length > 0 && (
                         <ul className="suggestions-list">
@@ -101,7 +114,7 @@ export default function SongSearch() {
                         </ul>
                     )}
                 </div>
-                <button type="submit">Guess</button>
+                <button type="submit" disabled={!selectedSong || disabled}>Guess</button>
             </form>
         </div>
     );
