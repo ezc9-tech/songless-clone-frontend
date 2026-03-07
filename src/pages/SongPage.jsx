@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../styles/SongPage.css";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../utils/supabase";
 
 const SongPage = () => {
   const [song, setSong] = useState(null);
