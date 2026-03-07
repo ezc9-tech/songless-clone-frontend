@@ -195,3 +195,10 @@ body {
   background: #00aeef;
   transition: width 0.05s linear;
 }
+
+.snippet-info {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 15px;
+  font-weight: 500;
+}

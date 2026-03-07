@@ -58,7 +58,12 @@ export default function AdtuneGamePage() {
         <div className="game-container">
             <Header />
             <GuessContainer guesses={guesses} correctSong={correctSong} />
-            <PlayButtonContainer soundcloudUrl={songUrl} />
+            
+            <PlayButtonContainer 
+                soundcloudUrl={songUrl} 
+                guessCount={guesses.length}
+                isGameOver={isGameOver}
+            />
             <SongSearch onGuess={handleGuess} disabled={isGameOver} />
         </div>
     )

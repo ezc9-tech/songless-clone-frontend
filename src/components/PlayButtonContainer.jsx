@@ -1,11 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-export default function PlayButtonContainer({ soundcloudUrl }) {
+export default function PlayButtonContainer({ soundcloudUrl, guessCount, isGameOver }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const iframeRef = useRef(null);
     const widgetRef = useRef(null);
     const pollingRef = useRef(null);
+
+    const limit = 500 * Math.pow(2, Math.min(guessCount, 5));
+    const limitSeconds = (limit / 1000).toFixed(1);
+    const limitRef = useRef(limit);
+
+    useEffect(() => {
+        limitRef.current = limit;
+        setProgress(0);
+    }, [limit]);
 
     useEffect(() => {
         if (!soundcloudUrl) return;
@@ -24,18 +33,18 @@ export default function PlayButtonContainer({ soundcloudUrl }) {
             stopPolling();
             pollingRef.current = setInterval(() => {
                 targetWidget.getPosition((pos) => {
-                    const limit = 30000; // 30 seconds
-                    if (pos >= limit) {
+                    const currentLimit = limitRef.current;
+                    if (pos >= currentLimit) {
                         targetWidget.pause();
                         targetWidget.seekTo(0);
                         setProgress(100);
                         setIsPlaying(false);
                         stopPolling();
                     } else {
-                        setProgress((pos / limit) * 100);
+                        setProgress((pos / currentLimit) * 100);
                     }
                 });
-            }, 100); // Poll every 100ms for precision
+            }, 20); // Poll every 20ms for higher precision
         };
 
         const setupWidget = () => {
@@ -47,6 +56,7 @@ export default function PlayButtonContainer({ soundcloudUrl }) {
                     // Reset state when new song is ready
                     setProgress(0);
                     setIsPlaying(false);
+                    widget.seekTo(0);
                 });
 
                 widget.bind(window.SC.Widget.Events.PLAY, () => {
@@ -103,7 +113,12 @@ export default function PlayButtonContainer({ soundcloudUrl }) {
 
     const handlePlayPause = () => {
         if (widgetRef.current) {
-            widgetRef.current.toggle();
+            if (!isPlaying) {
+                widgetRef.current.seekTo(0);
+                widgetRef.current.play();
+            } else {
+                widgetRef.current.pause();
+            }
         }
     };
 
@@ -111,6 +126,9 @@ export default function PlayButtonContainer({ soundcloudUrl }) {
         <div className="play-container">
             <div className="progress-bar">
                 <div className="progress-fill" style={{ width: `${progress}%` }}/>
+            </div>
+            <div className="snippet-info">
+                Snippet length: {limitSeconds}s
             </div>
             <button onClick={handlePlayPause}>
                 {isPlaying ? '⏸ Pause' : '▶ Play'}
